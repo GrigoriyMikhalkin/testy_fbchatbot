@@ -4,6 +4,7 @@ from lxml import etree
 import requests
 
 from .models import ExchangeRate, Weather
+from .utils import log
 
 
 UPDATE_WEATHER_TIME_GAP = 30  # minutes
@@ -91,7 +92,12 @@ def current_weather_message_handler(request):
     payload = {'q': 'Moscow', 'units': 'metric',
                'appid': os.environ.get('OWM_APPID')}
     response = requests.get(WEATHER_URL, params=payload)
+
+    if response.status_code != 200:
+        log(response.status_code)
+        log(os.environ.get('OWM_APPID'))
     data = response.json()
+
     temp = str(data['main'].get('temp'))
     wind_speed = str(data['wind'].get('speed'))
     weather = Weather(city='Moscow', temp=temp, wind_speed=wind_speed, time=now)

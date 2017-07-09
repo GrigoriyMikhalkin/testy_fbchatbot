@@ -131,7 +131,7 @@ class WebhookServer:
         # Save request and response
         response_request = RequestResponse(
             user_id=str(sender_id), request_type='message',
-            request_message=message, response_text=reponse_message
+            request_message=message.get('text'), response_text=reponse_message
         )
         response_request.save()
 
