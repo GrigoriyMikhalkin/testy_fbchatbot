@@ -1,6 +1,6 @@
 Flask==0.12.2
 gunicorn==19.7.1
 requests==2.18.1
-mongoengine==0.9.3
+mongoengine==0.13.0
 lxml==3.8.0
 #responses==0.5.1
