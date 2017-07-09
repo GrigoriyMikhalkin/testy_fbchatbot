@@ -1,13 +1,6 @@
-from flask import Flask, request
+from flask import request
 
-from base.server import WebhookServer
-from base.handlers import data_science_message_handler
-
-
-app = Flask(__name__)
-server = WebhookServer()
-server.set_message_handler(data_science_message_handler,
-                           "DEFAULT_HANDLER", default=True)
+from settings import app, server
 
 
 @app.route('/', methods=['GET'])

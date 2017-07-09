@@ -3,19 +3,26 @@ import json
 import unittest
 from unittest.mock import patch, Mock
 
+from mongoengine import connect
+
 from base.exceptions import (DuplicateHandlerCodeException,
                              MessageHandlerNotSettedException,
                              PostbackHandlerUndefinedException)
 from base.server import WebhookServer, MESSAGES_POST_LINK
-
+from base.models import User, RequestResponse
 from .test_utils import set_env_variable
 
 
 class WebhookServerTestCase(unittest.TestCase):
 
     def setUp(self):
+        self.db = connect(host=os.environ.get('MONGODB_TEST_HOST') + \
+                          os.environ.get('MONGODB_TEST_NAME'))
         self.server = WebhookServer()
         self.server.set_message_handler(self.message_handler, "special_handler")
+
+    def tearDown(self):
+        self.db.drop_database(os.environ.get('MONGODB_TEST_NAME'))
 
     def message_handler(self, request):
         return "received", "special_handler"
@@ -74,12 +81,17 @@ class WebhookServerTestCase(unittest.TestCase):
         # set special handler for user
         self.server.set_message_handler(self.message_handler, handler_code2)
         self.server.switch_user_message_handler(user_id, handler_code2)
-        self.assertEqual(self.server.special_handler_mapper[user_id],
-                         handler_code2)
+        self.assertEqual(
+            User.objects(user_id=str(user_id)).first().next_handler,
+            handler_code2
+        )
 
         # set default handler for user
         self.server.switch_user_message_handler(user_id, None)
-        self.assertIsNone(self.server.special_handler_mapper.get(user_id))
+        self.assertEqual(
+            User.objects(user_id=str(user_id)).first().next_handler,
+            handler_code1
+        )
 
     @set_env_variable('PAGE_ACCESS_TOKEN', 'test')
     @patch('base.server.requests')
@@ -119,8 +131,10 @@ class WebhookServerTestCase(unittest.TestCase):
         self.server.set_message_handler(self.message_handler, handler_code,
                                         default=True)
         self.server.handle_message(message, sender_id)
-        self.assertEqual(self.server.special_handler_mapper[sender_id],
-                         "special_handler")
+        self.assertEqual(
+            User.objects(user_id=str(sender_id)).first().next_handler,
+            "special_handler"
+        )
 
     @set_env_variable('PAGE_ACCESS_TOKEN', 'test')
     @patch('base.server.requests')
@@ -138,10 +152,12 @@ class WebhookServerTestCase(unittest.TestCase):
         # handle message
         self.server.set_postback_handler(self.message_handler, handler_code)
         self.server.handle_postback(postback, sender_id)
-        self.assertEqual(self.server.special_handler_mapper[sender_id],
-                         "special_handler")
+        self.assertEqual(
+            User.objects(user_id=str(sender_id)).first().next_handler,
+            "special_handler"
+        )
 
     @set_env_variable('PAGE_ACCESS_TOKEN', 'test')
     @patch('base.server.requests')
-    def test_handle_request(self, mock_obj):
+    def test_handle_request(self, mock):
         pass

@@ -7,6 +7,7 @@ from .utils import log
 from .exceptions import (DuplicateHandlerCodeException,
                          MessageHandlerNotSettedException,
                          PostbackHandlerUndefinedException)
+from .models import User, RequestResponse
 
 
 # Constants
@@ -23,10 +24,6 @@ class WebhookServer:
         self.postback_handlers = dict()
 
         self.default_message_handler = None
-
-        # if sender needs special message handler
-        # then we store his id in mapper
-        self.special_handler_mapper = dict()
 
     def set_message_handler(self, handler, handler_code, default=False):
         """
@@ -66,17 +63,20 @@ class WebhookServer:
         :param: user_id: int
         :param: message_handler_code: str
         """
-        if message_handler_code is None or \
-            message_handler_code == self.default_message_handler:
-            if user_id in self.special_handler_mapper:
-                del self.special_handler_mapper[user_id]
-            return
+        if message_handler_code is None:
+            message_handler_code = self.default_message_handler
 
+        # Check that message handler exists
         message_handler = self.message_handlers.get(message_handler_code, None)
         if message_handler is None:
             raise MessageHandlerNotSettedException
 
-        self.special_handler_mapper[user_id] = message_handler_code
+        user = User.objects(user_id=str(user_id)).first()
+        if user:
+            user.next_handler = message_handler_code
+        else:
+            user = User(user_id=str(user_id), next_handler=message_handler_code)
+        user.save()
 
     def send_message(self, recipient_id, message_text):
         """
@@ -116,16 +116,27 @@ class WebhookServer:
         :param: message: dict
         :param: sender_id: int
         """
-        message_handler_code = self.special_handler_mapper.get(sender_id) or \
-            self.default_message_handler
+        user = User.objects(user_id=str(sender_id)).first()
+        if user:
+            message_handler_code = user.next_handler
+        else:
+            message_handler_code = self.default_message_handler
+
         message_handler = self.message_handlers.get(message_handler_code)
         if not message_handler:
             raise MessageHandlerNotSettedException
 
-        message, next_handler = message_handler(message)
+        reponse_message, next_handler = message_handler(message)
+
+        # Save request and response
+        response_request = RequestResponse(
+            user_id=str(sender_id), request_type='message',
+            request_message=message, response_text=reponse_message
+        )
+        response_request.save()
 
         self.switch_user_message_handler(sender_id, next_handler)
-        self.send_message(sender_id, message)
+        self.send_message(sender_id, reponse_message)
 
     def handle_postback(self, postback, sender_id):
         """
@@ -140,6 +151,13 @@ class WebhookServer:
             raise PostbackHandlerUndefinedException
 
         message, next_message_handler = postback_handler(postback)
+
+        # Save request and response
+        response_request = RequestResponse(
+            user_id=str(sender_id), request_type='postback',
+            postback_type=postback_code, response_text=message
+        )
+        response_request.save()
 
         self.switch_user_message_handler(sender_id, next_message_handler)
         self.send_message(sender_id, message)
