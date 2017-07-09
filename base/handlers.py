@@ -3,9 +3,16 @@ from datetime import datetime, timedelta
 from lxml import etree
 import requests
 
+from sklearn.externals import joblib
+
 from .models import ExchangeRate, Weather
 from .utils import log
 
+
+CLASSIFIER_PATH = './data/forest.pkl'
+VECTORIZER_PATH = './data/vectorizer.pkl'
+classifier = joblib.load(CLASSIFIER_PATH)
+vectorizer = joblib.load(VECTORIZER_PATH)
 
 UPDATE_WEATHER_TIME_GAP = 30  # minutes
 
@@ -15,8 +22,23 @@ WEATHER_URL = 'http://api.openweathermap.org/data/2.5/weather'
 
 # Message handlers
 def data_science_message_handler(request):
-    # function(request) -> (response, next message handler)
-    return "Test!", None
+    """
+    Classifies user's message and if it's topic is data science
+    tries to find more specific subject user is interested in
+    and give link to wiki page on it
+
+    :param: request: dict
+    """
+    text = request.get('text')
+    text_features = vectorizer.transform([text])
+    result = classifier.predict(text_features)[0]
+
+    if result == '1':
+        message = "Вас интересует Data Science?"
+    else:
+        message = "Ничего не могу сказать на эту тему."
+
+    return message, None
 
 
 def exchange_rate_date_message_handler(request):
