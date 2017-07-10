@@ -4,7 +4,7 @@ from sklearn.externals import joblib
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import CountVectorizer
 
-from classifiers.preprocessors import preprocessor
+from classifiers.preprocessors import normalizing_preprocessor
 
 
 DATASET_PATH = './data/dataset.csv'
@@ -20,7 +20,8 @@ def vectorize_data(data):
     :return: numpy.array: vectorized data
     """
 
-    vectorizer = CountVectorizer(analyzer='word', preprocessor=preprocessor,
+    vectorizer = CountVectorizer(analyzer='word',
+                                 preprocessor=normalizing_preprocessor,
                                  stop_words=None, max_df=0.8)
     vectorized_data = vectorizer.fit_transform(data)
     data_array = vectorized_data.toarray()
