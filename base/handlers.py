@@ -196,7 +196,7 @@ def exchange_rate_postback_handler(currency_from, currency_to):
     }
     message = "За какой период вывести курс?"
 
-    return message, mapper((currency_from, currency_to))
+    return message, mapper.get((currency_from, currency_to))
 
 
 usd_rub_rate_postback_handler = \
