@@ -140,7 +140,7 @@ def exchange_rate_date_message_handler(currency_from, currency_to, request):
     """
     text = request.get('text')
     parsed_date = dateparser.parse(text, languages=['ru'])
-    message = "Курс {cfrom} к {cto} на {date}}: {rate}{cto}"
+    message = "Курс {cfrom} к {cto} на {date}: {rate}{cto}"
 
     if parsed_date:
         date = parsed_date.date()

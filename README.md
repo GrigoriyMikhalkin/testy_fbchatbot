@@ -4,6 +4,11 @@
 
 ## Запуск тестов
 
+Установить переменные среды:
+
+  MONGODB_TEST_HOST
+  MONGODB_TEST_NAME
+
 Например:
 
     python -m unittest tests.server_tests
