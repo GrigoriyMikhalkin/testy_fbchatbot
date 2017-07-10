@@ -45,9 +45,8 @@ def search_for_key_noun_phrases(text):
     :param: text: str
     :return: list: list of found phrases
     """
-    if GLOSSARY is None:
-        load_data_science_glossary()
-    log(GLOSSARY)
+    # if GLOSSARY is None:
+    load_data_science_glossary()
     phrases = []
     normalized_text = normalizing_preprocessor(text)
 
