@@ -16,7 +16,8 @@ connect(host=os.environ.get('MONGODB_URI'))
 from base.server import WebhookServer
 from base.handlers import (
     data_science_message_handler, usd_rub_rate_postback_handler,
-    euro_rub_rate_postback_handler, current_weather_message_handler
+    euro_rub_rate_postback_handler, current_weather_message_handler,
+    choose_phrase_message_handler
 )
 
 server = WebhookServer()
@@ -24,6 +25,8 @@ server = WebhookServer()
 # setting message handlers
 server.set_message_handler(data_science_message_handler, "DEFAULT_HANDLER",
                            default=True)
+server.set_message_handler(choose_phrase_message_handler,
+                           "CHOOSE_PHRASE_HANDLER")
 
 # setting postback handlers
 server.set_postback_handler(usd_rub_rate_postback_handler, "USDRUB_PAYLOAD")
