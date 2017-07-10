@@ -130,12 +130,13 @@ def choose_phrase_message_handler(request):
     return message, handler
 
 
-def exchange_rate_date_message_handler(currency_from, currency_to):
+def exchange_rate_date_message_handler(currency_from, currency_to, request):
     """
     Get exchange rate for specified period
 
     :param: currency_from: str
     :param: currency_to: str
+    :param: request: dict
     """
     text = request.get('text')
     parsed_date = dateparser.parse(text, languages=['ru'])
@@ -176,11 +177,11 @@ def exchange_rate_date_message_handler(currency_from, currency_to):
 
 
 usd_rub_exchange_rate_date_message_handler = \
-    lambda request: exchange_rate_date_message_handler('USD', 'RUB')
+    lambda request: exchange_rate_date_message_handler('USD', 'RUB', request)
 
 
 euro_rub_exchange_rate_date_message_handler = \
-    lambda request: exchange_rate_date_message_handler('EUR', 'RUB')
+    lambda request: exchange_rate_date_message_handler('EUR', 'RUB', request)
 
 
 # Postback handlers
