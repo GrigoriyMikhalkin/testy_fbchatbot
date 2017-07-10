@@ -138,7 +138,7 @@ def exchange_rate_date_message_handler(currency_from, currency_to):
     :param: currency_to: str
     """
     text = request.get('text')
-    parsed_date = dateparser.parse(text)
+    parsed_date = dateparser.parse(text, languages=['ru'])
     message = "Курс {cfrom} к {cto} на {date}}: {rate}{cto}"
 
     if parsed_date:
@@ -153,7 +153,7 @@ def exchange_rate_date_message_handler(currency_from, currency_to):
     ).first()
     if exchange_rate:
         message = message.format(cfrom=currency_from, cto=currency_to,
-                                 rate=exchange_rate.rate)
+                                 date=date, rate=exchange_rate.rate)
         return message, None
 
     # if not, load data from cbr.ru
@@ -170,7 +170,8 @@ def exchange_rate_date_message_handler(currency_from, currency_to):
     )
     exchange_rate.save()
 
-    message = message.format(cfrom=currency_from, cto=currency_to, rate=rate)
+    message = message.format(cfrom=currency_from, cto=currency_to,
+                             date=date, rate=rate)
     return message, None
 
 
