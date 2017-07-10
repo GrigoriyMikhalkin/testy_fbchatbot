@@ -117,7 +117,7 @@ class WebhookServerTestCase(unittest.TestCase):
     @set_env_variable('PAGE_ACCESS_TOKEN', 'test')
     @patch('base.server.requests')
     def test_handle_message(self, mock_obj):
-        message = "test"
+        message = {'text': "test"}
         sender_id = 1
         handler_code = "handler"
 

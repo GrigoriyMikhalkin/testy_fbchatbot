@@ -9,6 +9,7 @@ from mongoengine import connect
 
 from base.server import WebhookServer, MESSAGES_POST_LINK
 from base.handlers import (usd_rub_rate_postback_handler, EXCHANGE_RATES_URL,
+                           usd_rub_exchange_rate_date_message_handler,
                            current_weather_message_handler, WEATHER_URL,
                            UPDATE_WEATHER_TIME_GAP)
 from base.models import ExchangeRate, Weather
@@ -34,10 +35,19 @@ class HandlersTestCase(unittest.TestCase):
     def test_exchange_rate_postback_handler(self):
         today = datetime.now().date()
         handler_code = 'exchange_rate_handler'
+        exchange_message_handler = 'USDRUB_MESSAGE_HANDLER'
+
+        self.server.set_message_handler(
+            usd_rub_exchange_rate_date_message_handler,
+             exchange_message_handler
+        )
         self.server.set_postback_handler(usd_rub_rate_postback_handler,
                                          handler_code)
 
         with responses.RequestsMock() as rsps:
+            rsps.add(responses.POST, MESSAGES_POST_LINK, status=200)
+            self.server.handle_postback({'payload': handler_code}, 1)
+
             # db is empty
             body = '<ValCurs><Valute>' +\
                    '<CharCode>USD</CharCode>' +\
@@ -45,14 +55,14 @@ class HandlersTestCase(unittest.TestCase):
                    '</Valute></ValCurs>'
             rsps.add(responses.GET, EXCHANGE_RATES_URL, body=body)
             rsps.add(responses.POST, MESSAGES_POST_LINK, status=200)
-            self.server.handle_postback({'payload': handler_code}, 1)
+            self.server.handle_message({'text': 'test'}, 1)
             self.assertEqual(ExchangeRate.objects.count(), 1)
             self.assertEqual(ExchangeRate.objects(date=today).first().rate,
                              '100500,000')
 
             # today's rate in db
             rsps.add(responses.POST, MESSAGES_POST_LINK, status=200)
-            self.server.handle_postback({'payload': handler_code}, 1)
+            self.server.handle_message({'text': 'сегодня'}, 1)
             self.assertEqual(ExchangeRate.objects.count(), 1)
 
     @set_env_variable('PAGE_ACCESS_TOKEN', 'test')
