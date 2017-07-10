@@ -11,7 +11,7 @@ from .models import ExchangeRate, Weather
 from .utils import log
 
 
-GLOSSARY_PATH = '.data/data_science_glossary'
+GLOSSARY_PATH = './data/data_science_glossary'
 GLOSSARY = None
 
 CLASSIFIER_PATH = './data/forest.pkl'
