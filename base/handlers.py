@@ -1,9 +1,10 @@
 import os
 from datetime import datetime, timedelta
 from lxml import etree
-import requests
 
+import requests
 import pymorphy2
+import dateparser
 from sklearn.externals import joblib
 
 from classifiers.preprocessors import normalizing_preprocessor
@@ -72,7 +73,7 @@ def create_message_about_data_science(phrases):
         message = "Вас интересует Data Science? " +\
                   "К сожалению, не могу ответить на вопрос детальнее." +\
                   "Вот ссылка на статью, про data science, в вики: " +\
-                  "https://ru.wikipedia.org/wiki/Data_science"
+                  "httppasss://ru.wikipedia.org/wiki/Data_science"
 
     elif len(phrases) == 1:
         phrase = phrases[0]
@@ -129,27 +130,26 @@ def choose_phrase_message_handler(request):
     return message, handler
 
 
-def exchange_rate_date_message_handler(request):
-    pass
-
-
-def current_weather_city_message_handler(request):
-    pass
-
-
-# Postback handlers
-def exchange_rate_postback_handler(currency_from, currency_to):
+def exchange_rate_date_message_handler(currency_from, currency_to):
     """
-    Get exchange rate for today from cbr.ru
+    Get exchange rate for specified period
 
-    :param: request: dict
+    :param: currency_from: str
+    :param: currency_to: str
     """
-    today = datetime.now().date()
-    message = "Курс {cfrom} к {cto} на сегодня: {rate}{cto}"
+    text = request.get('text')
+    parsed_date = dateparser.parse(text)
+    message = "Курс {cfrom} к {cto} на {date}}: {rate}{cto}"
+
+    if parsed_date:
+        date = parsed_date.date()
+
+    else:
+        date = datetime.now().date()
 
     # check if exchange rate already in DB
     exchange_rate = ExchangeRate.objects(
-        currency_from=currency_from, currency_to=currency_to, date=today
+        currency_from=currency_from, currency_to=currency_to, date=date
     ).first()
     if exchange_rate:
         message = message.format(cfrom=currency_from, cto=currency_to,
@@ -165,13 +165,38 @@ def exchange_rate_postback_handler(currency_from, currency_to):
     rate = root.xpath(xpath)[0]
 
     exchange_rate = ExchangeRate(
-        currency_from=currency_from, currency_to=currency_to, date=today,
+        currency_from=currency_from, currency_to=currency_to, date=date,
         rate=rate
     )
     exchange_rate.save()
 
     message = message.format(cfrom=currency_from, cto=currency_to, rate=rate)
     return message, None
+
+
+usd_rub_exchange_rate_date_message_handler = \
+    lambda request: exchange_rate_date_message_handler('USD', 'RUB')
+
+
+euro_rub_exchange_rate_date_message_handler = \
+    lambda request: exchange_rate_date_message_handler('EUR', 'RUB')
+
+
+# Postback handlers
+def exchange_rate_postback_handler(currency_from, currency_to):
+    """
+    Get exchange rate message handler
+
+    :param: currency_from: str
+    :param: currency_to: str
+    """
+    mapper = {
+        ('USD', 'RUB'): 'USDRUB_MESSAGE_HANDLER',
+        ('EUR', 'RUB'): 'EURRUB_MESSAGE_HANDLER'
+    }
+    message = "За какой период вывести курс?"
+
+    return message, mapper((currency_from, currency_to))
 
 
 usd_rub_rate_postback_handler = \
