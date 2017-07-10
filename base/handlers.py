@@ -46,8 +46,8 @@ def search_for_key_noun_phrases(text):
     :param: text: str
     :return: list: list of found phrases
     """
-    # if GLOSSARY is None:
-    load_data_science_glossary()
+    if GLOSSARY is None:
+        load_data_science_glossary()
     phrases = []
     normalized_text = normalizing_preprocessor(text)
 
@@ -80,7 +80,7 @@ def create_message_about_data_science(phrases):
                   "Вот ссылка на статью про {phrase} в вики: " +\
                   "https://ru.wikipedia.org/wiki/{und_phrase}"
         message = message.format(
-          phrase=phrase, und_phrases=phrase.replace(' ', '_')
+          phrase=phrase, und_phrase=phrase.replace(' ', '_')
         )
     else:
         phrases_str = ', '.join(phrases)
