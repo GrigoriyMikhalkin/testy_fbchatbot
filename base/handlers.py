@@ -47,7 +47,7 @@ def search_for_key_noun_phrases(text):
     """
     if GLOSSARY is None:
         load_data_science_glossary()
-
+    log(GLOSSARY)
     phrases = []
     normalized_text = normalizing_preprocessor(text)
 
@@ -66,6 +66,7 @@ def create_message_about_data_science(phrases):
     :return: (str, str): Pair of message and next handler code
     """
     next_handler = None
+    log(phrases)
 
     if len(phrases) == 0:
         message = "Вас интересует Data Science? " +\
