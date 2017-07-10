@@ -36,6 +36,7 @@ def load_data_science_glossary():
             line = line.strip()
             processed_line = normalizing_preprocessor(line)
             GLOSSARY[line] = processed_line
+    log(GLOSSARY)
 
 
 def search_for_key_noun_phrases(text):
