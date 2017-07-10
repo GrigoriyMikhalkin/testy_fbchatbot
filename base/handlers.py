@@ -78,13 +78,15 @@ def create_message_about_data_science(phrases):
         phrase = phrases[0]
         message = "Вас интересует {phrase}?" +\
                   "Вот ссылка на статью про {phrase} в вики: " +\
-                  "https://ru.wikipedia.org/wiki/{und_phrase}".format(
-                    phrase=phrase, und_phrases=phrase.replace(' ', '_')
-                  )
+                  "https://ru.wikipedia.org/wiki/{und_phrase}"
+        message = message.format(
+          phrase=phrase, und_phrases=phrase.replace(' ', '_')
+        )
     else:
         phrases_str = ', '.join(phrases)
         message = "Вас интересует одна из этих тем: {phrases}?" +\
                   "Какая именно?".format(phrases=phrases_str)
+        message = message.format(phrases=phrases_str)
         next_handler = 'CHOOSE_PHRASE_HANDLER'
 
     return message, next_handler

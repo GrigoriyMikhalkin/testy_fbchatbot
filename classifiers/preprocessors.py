@@ -19,8 +19,9 @@ def normalizing_preprocessor(row_string):
     for word in words:
         word = word.strip()
         # miss words with len < 2
-        if len(words) > 1:
+        if len(word) > 1:
             normal_form = morph.parse(word)[0].normal_form
+
             if not normal_form:
                 normal_form = word
             processed_words.append(normal_form)
